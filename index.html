@@ -1,23 +1,160 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Swipe App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>フリックで動く箱 + セーブロード</title>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 0; padding: 0; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #eef2f3;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  #game-area {
+    position: relative;
+    width: 300px; height: 300px;
+    background: #cce5ff;
+    border: 2px solid #004085;
+    touch-action: none;
+    margin-bottom: 20px;
+  }
+  #box {
+    position: absolute;
+    width: 50px; height: 50px;
+    background: #0056b3;
+    border-radius: 6px;
+    top: 125px; left: 125px;
+    transition: top 0.1s, left 0.1s;
+  }
+  #controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  button {
+    font-size: 16px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+  }
+  button:active {
+    background: #0056b3;
+  }
+  #saved-time {
+    font-size: 14px;
+    color: #333;
+    min-height: 1.2em;
+  }
+</style>
 </head>
 <body>
-  <h1>スワイプで移動！</h1>
-  <div id="game-area">
-    <div id="player"></div>
-  </div>
 
-  <script src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+<div id="game-area">
+  <div id="box"></div>
+</div>
+
+<div id="controls">
+  <button id="save-btn">セーブ</button>
+  <button id="load-btn">ロード</button>
+</div>
+
+<div id="saved-time"></div>
+
+<script>
+  const box = document.getElementById('box');
+  const gameArea = document.getElementById('game-area');
+  const saveBtn = document.getElementById('save-btn');
+  const loadBtn = document.getElementById('load-btn');
+  const savedTimeDisplay = document.getElementById('saved-time');
+
+  let posX = 125;
+  let posY = 125;
+  const step = 50;
+  const maxPos = 250; // game-area 300 - box 50
+
+  // タッチ開始座標記憶用
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  gameArea.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
     }
-  </script>
+  });
+
+  gameArea.addEventListener('touchend', e => {
+    if (e.changedTouches.length === 1) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      // スワイプの判定（閾値50px）
+      if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          // 横スワイプ
+          if (deltaX > 0) moveBox('right');
+          else moveBox('left');
+        } else {
+          // 縦スワイプ
+          if (deltaY > 0) moveBox('down');
+          else moveBox('up');
+        }
+      }
+    }
+  });
+
+  function moveBox(direction) {
+    switch(direction) {
+      case 'left':
+        posX = Math.max(0, posX - step);
+        break;
+      case 'right':
+        posX = Math.min(maxPos, posX + step);
+        break;
+      case 'up':
+        posY = Math.max(0, posY - step);
+        break;
+      case 'down':
+        posY = Math.min(maxPos, posY + step);
+        break;
+    }
+    box.style.left = posX + 'px';
+    box.style.top = posY + 'px';
+  }
+
+  // セーブボタン押下時
+  saveBtn.addEventListener('click', () => {
+    const now = new Date();
+    const timeString = now.toISOString() + '.' + now.getMilliseconds().toString().padStart(3, '0');
+    // LocalStorageに保存
+    localStorage.setItem('savedTime', timeString);
+    savedTimeDisplay.textContent = 'セーブ日時: ' + timeString;
+  });
+
+  // ロードボタン押下時
+  loadBtn.addEventListener('click', () => {
+    const saved = localStorage.getItem('savedTime');
+    if (saved) {
+      savedTimeDisplay.textContent = '保存された日時: ' + saved;
+    } else {
+      savedTimeDisplay.textContent = '保存された日時がありません';
+    }
+  });
+</script>
+
 </body>
 </html>
