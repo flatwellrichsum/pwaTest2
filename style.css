@@ -1,27 +1,66 @@
 body {
   margin: 0;
   font-family: sans-serif;
-  text-align: center;
-  background: #f0f0f0;
+  background: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-#game-area {
-  margin: 20px auto;
-  width: 300px;
-  height: 300px;
-  background: #ddd;
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
+.calculator {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  width: 250px;
 }
 
-#player {
-  width: 50px;
-  height: 50px;
-  background: #2196f3;
-  position: absolute;
-  top: 125px;
-  left: 125px;
-  border-radius: 10px;
-  transition: left 0.2s;
+#display {
+  width: 100%;
+  font-size: 24px;
+  padding: 10px;
+  margin-bottom: 12px;
+  text-align: right;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.btn {
+  padding: 15px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: #e0e0e0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: #ccc;
+}
+
+.op {
+  background: #1976d2;
+  color: white;
+}
+
+.op:hover {
+  background: #115293;
+}
+
+.clear {
+  grid-column: span 4;
+  background: #d32f2f;
+  color: white;
+}
+
+.clear:hover {
+  background: #9a0007;
 }

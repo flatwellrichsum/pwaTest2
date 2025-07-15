@@ -1,160 +1,46 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>フリックで動く箱 + セーブロード</title>
-<style>
-  body {
-    font-family: sans-serif;
-    margin: 0; padding: 0; height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: #eef2f3;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-  }
-  #game-area {
-    position: relative;
-    width: 300px; height: 300px;
-    background: #cce5ff;
-    border: 2px solid #004085;
-    touch-action: none;
-    margin-bottom: 20px;
-  }
-  #box {
-    position: absolute;
-    width: 50px; height: 50px;
-    background: #0056b3;
-    border-radius: 6px;
-    top: 125px; left: 125px;
-    transition: top 0.1s, left 0.1s;
-  }
-  #controls {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  button {
-    font-size: 16px;
-    padding: 8px 14px;
-    border: none;
-    border-radius: 5px;
-    background: #007bff;
-    color: white;
-    cursor: pointer;
-    user-select: none;
-  }
-  button:active {
-    background: #0056b3;
-  }
-  #saved-time {
-    font-size: 14px;
-    color: #333;
-    min-height: 1.2em;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PWA Calculator</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#1976d2" />
+
+  <!-- iOS support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="icon.png" />
 </head>
 <body>
+  <div class="calculator">
+    <input type="text" id="display" readonly />
+    <div class="buttons">
+      <button class="btn" onclick="press('7')">7</button>
+      <button class="btn" onclick="press('8')">8</button>
+      <button class="btn" onclick="press('9')">9</button>
+      <button class="btn op" onclick="press('/')">÷</button>
 
-<div id="game-area">
-  <div id="box"></div>
-</div>
+      <button class="btn" onclick="press('4')">4</button>
+      <button class="btn" onclick="press('5')">5</button>
+      <button class="btn" onclick="press('6')">6</button>
+      <button class="btn op" onclick="press('*')">×</button>
 
-<div id="controls">
-  <button id="save-btn">セーブ</button>
-  <button id="load-btn">ロード</button>
-</div>
+      <button class="btn" onclick="press('1')">1</button>
+      <button class="btn" onclick="press('2')">2</button>
+      <button class="btn" onclick="press('3')">3</button>
+      <button class="btn op" onclick="press('-')">−</button>
 
-<div id="saved-time"></div>
+      <button class="btn" onclick="press('0')">0</button>
+      <button class="btn" onclick="press('.')">.</button>
+      <button class="btn" onclick="calculate()">=</button>
+      <button class="btn op" onclick="press('+')">+</button>
 
-<script>
-  const box = document.getElementById('box');
-  const gameArea = document.getElementById('game-area');
-  const saveBtn = document.getElementById('save-btn');
-  const loadBtn = document.getElementById('load-btn');
-  const savedTimeDisplay = document.getElementById('saved-time');
+      <button class="btn clear" onclick="clearDisplay()">C</button>
+    </div>
+  </div>
 
-  let posX = 125;
-  let posY = 125;
-  const step = 50;
-  const maxPos = 250; // game-area 300 - box 50
-
-  // タッチ開始座標記憶用
-  let touchStartX = 0;
-  let touchStartY = 0;
-
-  gameArea.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    }
-  });
-
-  gameArea.addEventListener('touchend', e => {
-    if (e.changedTouches.length === 1) {
-      const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
-
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-
-      // スワイプの判定（閾値50px）
-      if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          // 横スワイプ
-          if (deltaX > 0) moveBox('right');
-          else moveBox('left');
-        } else {
-          // 縦スワイプ
-          if (deltaY > 0) moveBox('down');
-          else moveBox('up');
-        }
-      }
-    }
-  });
-
-  function moveBox(direction) {
-    switch(direction) {
-      case 'left':
-        posX = Math.max(0, posX - step);
-        break;
-      case 'right':
-        posX = Math.min(maxPos, posX + step);
-        break;
-      case 'up':
-        posY = Math.max(0, posY - step);
-        break;
-      case 'down':
-        posY = Math.min(maxPos, posY + step);
-        break;
-    }
-    box.style.left = posX + 'px';
-    box.style.top = posY + 'px';
-  }
-
-  // セーブボタン押下時
-  saveBtn.addEventListener('click', () => {
-    const now = new Date();
-    const timeString = now.toISOString() + '.' + now.getMilliseconds().toString().padStart(3, '0');
-    // LocalStorageに保存
-    localStorage.setItem('savedTime', timeString);
-    savedTimeDisplay.textContent = 'セーブ日時: ' + timeString;
-  });
-
-  // ロードボタン押下時
-  loadBtn.addEventListener('click', () => {
-    const saved = localStorage.getItem('savedTime');
-    if (saved) {
-      savedTimeDisplay.textContent = '保存された日時: ' + saved;
-    } else {
-      savedTimeDisplay.textContent = '保存された日時がありません';
-    }
-  });
-</script>
-
+  <script src="app.js"></script>
 </body>
 </html>

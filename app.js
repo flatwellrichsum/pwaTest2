@@ -1,28 +1,30 @@
-const player = document.getElementById("player");
-let posX = 125;
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registered', reg.scope))
+      .catch(err => console.log('Service Worker registration failed:', err));
+  });
+}
 
-let touchStartX = null;
+let expression = '';
 
-document.getElementById("game-area").addEventListener("touchstart", (e) => {
-  touchStartX = e.touches[0].clientX;
-});
+function press(val) {
+  expression += val;
+  document.getElementById('display').value = expression;
+}
 
-document.getElementById("game-area").addEventListener("touchend", (e) => {
-  if (touchStartX === null) return;
+function clearDisplay() {
+  expression = '';
+  document.getElementById('display').value = '';
+}
 
-  const touchEndX = e.changedTouches[0].clientX;
-  const diff = touchEndX - touchStartX;
-
-  if (Math.abs(diff) > 30) {
-    if (diff > 0) {
-      // Swipe right
-      posX = Math.min(posX + 50, 250);
-    } else {
-      // Swipe left
-      posX = Math.max(posX - 50, 0);
-    }
-    player.style.left = posX + "px";
+function calculate() {
+  try {
+    const result = eval(expression);
+    document.getElementById('display').value = result;
+    expression = result.toString();
+  } catch (e) {
+    document.getElementById('display').value = 'Error';
+    expression = '';
   }
-
-  touchStartX = null;
-});
+}

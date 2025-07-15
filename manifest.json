@@ -1,10 +1,10 @@
 {
-  "name": "Swipe App",
-  "short_name": "Swipe",
-  "start_url": "index.html",
+  "name": "PWA Calculator",
+  "short_name": "Calculator",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2196f3",
+  "theme_color": "#1976d2",
   "icons": [
     {
       "src": "icon.png",
